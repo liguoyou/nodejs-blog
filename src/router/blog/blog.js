@@ -20,8 +20,8 @@ const handleBlogRouter = (req, res) => {
 		const keyword = query.keyword || ''
 
 		const result = getList(author, keyword)
-		return result.then(res => {
-			return new SuccessModel(res)
+		return result.then(listData => {
+			return new SuccessModel(listData)
 		})
 	}
 
@@ -30,12 +30,27 @@ const handleBlogRouter = (req, res) => {
 		if (!id) {
 			return new ErrorModel('参数不能为空!')
 		}
-		return new SuccessModel(getDetail(id))
+
+		const result = getDetail(id)
+		return result.then(data => {
+			if (data[0]) {
+				return new SuccessModel(data[0])
+			}
+			return new ErrorModel('未查询到数据')
+		})
 	}
 
 	// 新增一篇博客
 	if (method === 'POST' && path === '/api/blog/new') {
-		return new SuccessModel(newBlog(body))
+		// author 假数据, 待登录模块实现后处理
+		body.author = 'guoyou'
+		const result = newBlog(body)
+		return result.then(insertData => {
+			if (insertData.id) {
+				return new SuccessModel(insertData)
+			}
+			return new ErrorModel('新增失败!')
+		})
 	}
 
 	// 更新一篇博客
@@ -44,16 +59,31 @@ const handleBlogRouter = (req, res) => {
 			return new ErrorModel('参数不能为空!')
 		}
 
-		return new SuccessModel(updateBlog(id, body))
+		const result = updateBlog(id, body)
+		return result.then(res => {
+			if (res) {
+				return new SuccessModel('更新成功!')
+			}
+			return new ErrorModel('更新失败!')
+		})
 	}
 
 	// 删除博客
 	if (method === 'POST' && req.path === '/api/blog/del') {
-		if (!id || !body) {
+		if (!id) {
 			return new ErrorModel('参数不能为空!')
 		}
 
-		return new SuccessModel(delBlog(id))
+		// author 假数据, 待登录模块实现后处理
+		const author = 'guoyou'
+
+		const result = delBlog(id, author)
+		return result.then(res => {
+			if (res) {
+				return new SuccessModel('删除成功!')
+			}
+			return new ErrorModel('删除失败!')
+		})
 	}
 }
 

@@ -20,6 +20,8 @@ const exec = sql => {
 			reslove(result)
 		})
 	})
+
+	// 返回 promise
 	return promise
 }
 
