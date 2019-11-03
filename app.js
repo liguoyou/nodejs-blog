@@ -1,5 +1,6 @@
 const handleBlogRouter = require('./src/router/blog/blog.js')
 const handleUserRouter = require('./src/router/user/user.js')
+const queryString = require('querystring')
 
 const serverHandle = (req, res) => {
 	// global.process.env.NODE_ENV
@@ -7,41 +8,30 @@ const serverHandle = (req, res) => {
 	// 设置返回格式
 	res.setHeader('Content-type', 'application/json')
 
-	// 访问的接口地址
-	const path = req.url.split('?')[0]
-	req.path = path
+	// 获取请求的接口路径
+	req.path = req.url.split('?')[0]
+
+	// 获取参数
+	req.query = queryString.parse(req.url.split('?')[1])
 
 	// 博客相关的接口
-	const blogRouterResult = handleBlogRouter(req, res)
-	if (blogRouterResult) {
-		res.end(JSON.stringify(blogRouterResult))
+	const blogData = handleBlogRouter(req, res)
+	if (blogData) {
+		res.end(JSON.stringify(blogData))
 		return
 	}
 
 	// 用户相关的接口
-	const userRouterResult = handleUserRouter(req, res)
-	if (userRouterResult) {
-		res.end(JSON.stringify(userRouterResult))
+	const userData = handleUserRouter(req, res)
+	if (userData) {
+		res.end(JSON.stringify(userData))
 		return
 	}
 
-	// 接口不正确
+	// 接口地址不正确
 	res.writeHead(404, { 'Content-type': 'text/plain' })
 	res.write('404 Not in Found')
 	res.end()
-
-	// const resData = {
-	// 	code: 1,
-	// 	data: [
-	// 		{
-	// 			title: '博客标题BB',
-	// 			content: '博客内容BB',
-	// 			env: global.process.env.NODE_ENV
-	// 		}
-	// 	]
-	// }
-
-	// res.end(JSON.stringify(resData))
 }
 
 module.exports = serverHandle
