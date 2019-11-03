@@ -1,3 +1,4 @@
+// 获取博客列表
 const getList = (author, keyword) => {
 	// 返回假数据(格式是正确的)
 	return [
@@ -18,6 +19,7 @@ const getList = (author, keyword) => {
 	]
 }
 
+// 获取博客详情
 const getDetail = id => {
 	// 返回假数据(格式是正确的)
 	return {
@@ -29,7 +31,27 @@ const getDetail = id => {
 	}
 }
 
+// 新建博客
+const newBlog = (blogData = {}) => {
+	return {
+		id: 3
+	}
+}
+
+// 更新博客
+const updateBlog = (id, blogData = {}) => {
+	return '更新成功'
+}
+
+// 删除博客
+const delBlog = id => {
+	return '删除成功'
+}
+
 module.exports = {
 	getList,
-	getDetail
+	getDetail,
+	newBlog,
+	updateBlog,
+	delBlog
 }

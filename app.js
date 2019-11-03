@@ -10,7 +10,7 @@ const getPostData = req => {
 			return
 		}
 
-		if (req.headers['content-type'] !== 'application') {
+		if (req.headers['content-type'] !== 'application/json') {
 			reslove({})
 			return
 		}
