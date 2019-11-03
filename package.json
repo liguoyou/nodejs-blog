@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/liguoyou/nodejs-blog/issues"
   },
-  "homepage": "https://github.com/liguoyou/nodejs-blog#readme"
+  "homepage": "https://github.com/liguoyou/nodejs-blog#readme",
+  "dependencies": {
+    "mysql": "^2.17.1"
+  }
 }
