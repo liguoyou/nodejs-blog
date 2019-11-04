@@ -5,11 +5,12 @@ const handleUserRouter = (req, res) => {
 	// 登录
 	if (req.method === 'POST' && req.path === '/api/user/login') {
 		const result = login(req.body)
-		console.log(req.body, result)
-		if (result) {
-			return new SuccessModel('登录成功')
-		}
-		return new ErrorModel('用户名或密码错误')
+		return result.then(res => {
+			if (res) {
+				return new SuccessModel('登录成功')
+			}
+			return new ErrorModel('用户名或密码错误')
+		})
 	}
 }
 

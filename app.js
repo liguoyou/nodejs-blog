@@ -59,9 +59,11 @@ const serverHandle = (req, res) => {
 		}
 
 		// 用户相关的接口
-		const userData = handleUserRouter(req, res)
-		if (userData) {
-			res.end(JSON.stringify(userData))
+		const userResult = handleUserRouter(req, res)
+		if (userResult) {
+			userResult.then(data => {
+				res.end(JSON.stringify(data))
+			})
 			return
 		}
 

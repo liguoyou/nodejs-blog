@@ -40,9 +40,9 @@ const newBlog = (blogData = {}) => {
 }
 
 // 更新博客
-const updateBlog = (id, blogData = {}) => {
+const updateBlog = (id, blogData = {}, author) => {
 	const sql = `
-    update blogs set title='${blogData.title}', content='${blogData.content}' where id=${id}
+    update blogs set title='${blogData.title}', content='${blogData.content}' where id=${id} and author='${author}';
   `
 	return exec(sql).then(rows => {
 		if (rows.affectedRows > 0) {
@@ -60,7 +60,7 @@ const delBlog = (id, author) => {
 
 	// 变更状态即可
 	const sql = `
-    update blogs set state=0 where id=${id} and author='${author}'
+    update blogs set state=0 where id=${id} and author='${author}';
   `
 
 	return exec(sql).then(rows => {

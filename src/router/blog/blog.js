@@ -59,7 +59,10 @@ const handleBlogRouter = (req, res) => {
 			return new ErrorModel('参数不能为空!')
 		}
 
-		const result = updateBlog(id, body)
+		// author 假数据, 待登录模块实现后处理
+		const author = 'guoyou'
+
+		const result = updateBlog(id, body, author)
 		return result.then(res => {
 			if (res) {
 				return new SuccessModel('更新成功!')
