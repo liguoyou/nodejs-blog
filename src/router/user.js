@@ -1,5 +1,6 @@
-const { login } = require('../../controller/user.js')
-const { SuccessModel, ErrorModel } = require('../../model/resData.js')
+const { login } = require('../controller/user.js')
+const { SuccessModel, ErrorModel } = require('../model/resData.js')
+const { set } = require('../db/redis.js')
 
 const handleUserRouter = (req, res) => {
 	// 登录
@@ -12,6 +13,9 @@ const handleUserRouter = (req, res) => {
 				// 操作cookie
 				req.session.username = resData.username
 				req.session.realName = resData.realName
+
+				// 同步 redis
+				set(req.sessionId, req.session)
 
 				console.log('req.session is', req.session)
 
@@ -27,7 +31,7 @@ const handleUserRouter = (req, res) => {
 		if (req.session.username) {
 			return Promise.resolve(new SuccessModel('登录成功'))
 		}
-		return Promise.resolve(new ErrorModel('用户名或密码错误'))
+		return Promise.resolve(new ErrorModel('尚未登录'))
 	}
 }
 

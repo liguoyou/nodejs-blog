@@ -1,9 +1,10 @@
-const handleBlogRouter = require('./src/router/blog/blog.js')
-const handleUserRouter = require('./src/router/user/user.js')
+const handleBlogRouter = require('./src/router/blog.js')
+const handleUserRouter = require('./src/router/user.js')
 const queryString = require('querystring')
+const { get, set } = require('./src/db/redis.js')
 
 // session 数据
-const SESSION_DATA = {}
+// const SESSION_DATA = {}
 
 // 获取 cookie 的过期时间
 const getCookieExpires = () => {
@@ -25,12 +26,14 @@ const getPostData = req => {
 			return
 		}
 
+		// 监听数据
 		let postData = ''
 		req.on('data', chunk => {
 			// chunk 是一个 Buffer 对象
 			postData += chunk.toString()
 		})
 
+		// 监听请求完成
 		req.on('end', () => {
 			if (!postData) {
 				reslove({})
@@ -52,7 +55,7 @@ const serverHandle = (req, res) => {
 	// 获取请求的接口路径
 	req.path = req.url.split('?')[0]
 
-	// 获取参数
+	// 获取参数, 并转成 queryString 对象
 	req.query = queryString.parse(req.url.split('?')[1])
 
 	// 解析 cookie
@@ -67,61 +70,76 @@ const serverHandle = (req, res) => {
 		req.cookie[key] = val
 	})
 
-	// 解析 session
+	// 解析 session (使用redis)
 	let needSetCookie = false
 	let userId = req.cookie.userid
-	if (userId) {
-		SESSION_DATA[userId] = SESSION_DATA[userId] || {}
-	} else {
+	if (!userId) {
 		needSetCookie = true
 		userId = `${Date.now()}_${Math.random()}`
-		SESSION_DATA[userId] = {}
+
+		// 初始化 redis 中的 session 值
+		set(userId, {})
 	}
-	req.session = SESSION_DATA[userId]
+	// 获取 session
+	req.sessionId = userId
+	get(req.sessionId)
+		.then(sessionData => {
+			if (sessionData == null) {
+				// 初始化 redis 中的 session 值
+				set(req.sessionId, {})
 
-	// 处理 post data
-	getPostData(req).then(postData => {
-		req.body = postData
+				// 设置 session
+				req.session = {}
+			} else {
+				req.session = sessionData
+			}
+			console.log('req.session', req.session)
 
-		// 博客相关的接口
-		const blogResult = handleBlogRouter(req, res)
-		if (blogResult) {
-			blogResult.then(blogData => {
-				if (needSetCookie) {
-					// 操作 cookie
-					res.setHeader(
-						'Set-Cookie',
-						`userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`
-					)
-				}
+			// 处理 post data
+			return getPostData(req)
+		})
+		.then(postData => {
+			req.body = postData
 
-				res.end(JSON.stringify(blogData))
-			})
-			return
-		}
+			// 博客相关的接口
+			const blogResult = handleBlogRouter(req, res)
+			if (blogResult) {
+				blogResult.then(blogData => {
+					if (needSetCookie) {
+						// 操作 cookie
+						res.setHeader(
+							'Set-Cookie',
+							`userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`
+						)
+					}
 
-		// 用户相关的接口
-		const userResult = handleUserRouter(req, res)
-		if (userResult) {
-			userResult.then(data => {
-				if (needSetCookie) {
-					// 操作 cookie
-					res.setHeader(
-						'Set-Cookie',
-						`userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`
-					)
-				}
+					res.end(JSON.stringify(blogData))
+				})
+				return
+			}
 
-				res.end(JSON.stringify(data))
-			})
-			return
-		}
+			// 用户相关的接口
+			const userResult = handleUserRouter(req, res)
+			if (userResult) {
+				userResult.then(data => {
+					if (needSetCookie) {
+						// 操作 cookie
+						res.setHeader(
+							'Set-Cookie',
+							`userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`
+						)
+					}
 
-		// 接口地址不正确
-		res.writeHead(404, { 'Content-type': 'text/plain' })
-		res.write('404 Not Found\n')
-		res.end()
-	})
+					res.end(JSON.stringify(data))
+				})
+				return
+			}
+
+			// 接口地址不正确
+			res.writeHead(404, { 'Content-type': 'text/plain' })
+			res.write('404 Not Found\n')
+			res.end()
+		})
 }
 
 module.exports = serverHandle

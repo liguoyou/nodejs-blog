@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/liguoyou/nodejs-blog#readme",
   "dependencies": {
-    "mysql": "^2.17.1"
+    "mysql": "^2.17.1",
+    "redis": "^2.8.0"
   }
 }

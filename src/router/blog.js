@@ -4,8 +4,8 @@ const {
 	newBlog,
 	updateBlog,
 	delBlog
-} = require('../../controller/blog.js')
-const { SuccessModel, ErrorModel } = require('../../model/resData.js')
+} = require('../controller/blog.js')
+const { SuccessModel, ErrorModel } = require('../model/resData.js')
 
 const handleBlogRouter = (req, res) => {
 	const method = req.method // GET POST
