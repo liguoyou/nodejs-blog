@@ -7,6 +7,13 @@ const {
 } = require('../controller/blog.js')
 const { SuccessModel, ErrorModel } = require('../model/resData.js')
 
+// 登录验证函数
+const loginCheck = req => {
+	if (!req.session.username) {
+		return Promise.resolve(new ErrorModel('尚未登录'))
+	}
+}
+
 const handleBlogRouter = (req, res) => {
 	const method = req.method // GET POST
 	const path = req.path
@@ -14,10 +21,22 @@ const handleBlogRouter = (req, res) => {
 	const id = req.query.id
 	const body = req.body
 
+	// 校验登录结果
+	const loginCheckResult = loginCheck(req)
+
 	// 获取博客列表
 	if (method === 'GET' && path === '/api/blog/list') {
-		const author = query.author || ''
+		let author = query.author || ''
 		const keyword = query.keyword || ''
+
+		// 管理员界面
+		if (req.query.isadmin) {
+			// 登录权限验证
+			if (loginCheckResult) return loginCheckResult
+
+			// 强制查询自己的博客
+			author = req.session.username
+		}
 
 		const result = getList(author, keyword)
 		return result.then(listData => {
@@ -42,8 +61,10 @@ const handleBlogRouter = (req, res) => {
 
 	// 新增一篇博客
 	if (method === 'POST' && path === '/api/blog/new') {
-		// author 假数据, 待登录模块实现后处理
-		body.author = 'guoyou'
+		// 登录权限验证
+		if (loginCheckResult) return loginCheckResult
+
+		body.author = req.session.username
 		const result = newBlog(body)
 		return result.then(insertData => {
 			if (insertData.id) {
@@ -55,12 +76,14 @@ const handleBlogRouter = (req, res) => {
 
 	// 更新一篇博客
 	if (method === 'POST' && path === '/api/blog/update') {
+		// 登录权限验证
+		if (loginCheckResult) return loginCheckResult
+
 		if (!id || !body) {
 			return new ErrorModel('参数不能为空!')
 		}
 
-		// author 假数据, 待登录模块实现后处理
-		const author = 'guoyou'
+		const author = req.session.username
 
 		const result = updateBlog(id, body, author)
 		return result.then(res => {
@@ -73,13 +96,14 @@ const handleBlogRouter = (req, res) => {
 
 	// 删除博客
 	if (method === 'POST' && req.path === '/api/blog/del') {
+		// 登录权限验证
+		if (loginCheckResult) return loginCheckResult
+
 		if (!id) {
 			return new ErrorModel('参数不能为空!')
 		}
 
-		// author 假数据, 待登录模块实现后处理
-		const author = 'guoyou'
-
+		const author = req.session.username
 		const result = delBlog(id, author)
 		return result.then(res => {
 			if (res) {
