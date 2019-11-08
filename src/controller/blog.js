@@ -1,22 +1,21 @@
-const exec = require('../db/mysql.js')
+const { exec, escape } = require('../db/mysql.js')
 
 // 获取博客列表
 const getList = (author, keyword) => {
 	let sql = 'select * from blogs where state=1'
 	if (author) {
-		sql += ` and author='${author}'`
+		sql += ` and author=${escape(author)}`
 	}
 	if (keyword) {
-		sql += ` and content like '%${keyword}%'`
+		sql += ` and content like ${escape('%' + keyword + '%')}`
 	}
 	sql += ' order by createtime desc;'
-
 	return exec(sql)
 }
 
 // 获取博客详情
 const getDetail = id => {
-	const sql = `select * from blogs where state=1 and id=${id};`
+	const sql = `select * from blogs where state=1 and id=${escape(id)};`
 	return exec(sql)
 }
 
@@ -25,11 +24,10 @@ const newBlog = (blogData = {}) => {
 	const sql = `
     insert into blogs (title, content, createtime, author) 
     values(
-      '${blogData.title}',
-      '${blogData.content}',
-      ${Date.now()},
-      '${blogData.author}'
-    )
+      ${escape(blogData.title)}, 
+      ${escape(blogData.content)}, 
+      ${Date.now()}, 
+      ${escape(blogData.author)})
   `
 
 	return exec(sql).then(data => {
@@ -41,8 +39,12 @@ const newBlog = (blogData = {}) => {
 
 // 更新博客
 const updateBlog = (id, blogData = {}, author) => {
+	const title = blogData.title
+	const content = blogData.content
 	const sql = `
-    update blogs set title='${blogData.title}', content='${blogData.content}' where id=${id} and author='${author}';
+    update blogs 
+    set title=${escape(title)}, content=${escape(content)} 
+    where id=${escape(id)} and author=${escape(author)};
   `
 	return exec(sql).then(rows => {
 		if (rows.affectedRows > 0) {
@@ -60,7 +62,8 @@ const delBlog = (id, author) => {
 
 	// 变更状态即可
 	const sql = `
-    update blogs set state=0 where id=${id} and author='${author}';
+    update blogs set state=0 
+    where id=${escape(id)} and author=${escape(author)};
   `
 
 	return exec(sql).then(rows => {

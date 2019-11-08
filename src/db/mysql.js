@@ -25,4 +25,10 @@ const exec = sql => {
 	return promise
 }
 
-module.exports = exec
+// 防止 sql 注入
+const escape = mysql.escape
+
+module.exports = {
+	exec,
+	escape
+}
