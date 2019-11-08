@@ -1,10 +1,11 @@
 const { exec, escape } = require('../db/mysql.js')
+const genPassword = require('../utils/crypto')
 
 const login = body => {
 	const sql = `
     select username,realname from users 
     where state=1 and username=${escape(body.username)} 
-    and password=${escape(body.password)};
+    and password=${escape(genPassword(body.password))};
   `
 
 	return exec(sql).then(rows => {
