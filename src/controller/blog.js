@@ -1,3 +1,4 @@
+const xss = require('xss')
 const { exec, escape } = require('../db/mysql.js')
 
 // 获取博客列表
@@ -24,8 +25,8 @@ const newBlog = (blogData = {}) => {
 	const sql = `
     insert into blogs (title, content, createtime, author) 
     values(
-      ${escape(blogData.title)}, 
-      ${escape(blogData.content)}, 
+      ${xss(escape(blogData.title))}, 
+      ${xss(escape(blogData.content))}, 
       ${Date.now()}, 
       ${escape(blogData.author)})
   `
@@ -43,7 +44,7 @@ const updateBlog = (id, blogData = {}, author) => {
 	const content = blogData.content
 	const sql = `
     update blogs 
-    set title=${escape(title)}, content=${escape(content)} 
+    set title=${xss(escape(title))}, content=${xss(escape(content))} 
     where id=${escape(id)} and author=${escape(author)};
   `
 	return exec(sql).then(rows => {
